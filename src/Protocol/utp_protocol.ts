@@ -1,8 +1,8 @@
 
-import { UtpServer } from "./utp_server";
+import { UtpServer } from "../Server/utpServer";
 import { Multiaddr } from "multiaddr";
-import { SendCallback } from "./utp_socket/SocketTypes";
-import { defaultSocketConfig, UtpSocket } from "./utp_socket/Utp_socket";
+import { SendCallback } from "../Socket/socketTyping";
+import { defaultSocketConfig, UtpSocket } from "../Socket/utpSocket";
 
 export interface IUtpProtocolOptions {
   transport: UtpSocket;
