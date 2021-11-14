@@ -1,0 +1,24 @@
+{
+  "name": "ultralight-utp",
+  "version": "1.0.0",
+  "description": "Typescript UTP Module",
+  "main": "index.js",
+  "scripts": {
+    "test": "test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ScottyPoi/Ultralight-UTP.git"
+  },
+  "keywords": [
+    "utp",
+    "portalnetwork",
+    "ethereum"
+  ],
+  "author": "ScottyPoi",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/ScottyPoi/Ultralight-UTP/issues"
+  },
+  "homepage": "https://github.com/ScottyPoi/Ultralight-UTP#readme"
+}
