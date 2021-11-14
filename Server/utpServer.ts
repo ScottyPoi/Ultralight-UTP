@@ -25,18 +25,18 @@ export type AcceptConnectionCallback = (
 
 export interface IUtpServerOptions {
   sockets?: Map<UtpSocketKey, UtpSocket>;
-  socketConfig: SocketConfig;
+  socketConfig?: SocketConfig;
 }
 
-export class UtpServer extends EventEmitter {
+export default class UtpServer extends EventEmitter {
   sockets: Map<UtpSocketKey, UtpSocket>;
   socketConfig: typeof defaultSocketConfig;
   closed: boolean;
   rng: number[];
-  constructor(options: IUtpServerOptions) {
+  constructor(options?: IUtpServerOptions) {
     super()
-    this.sockets = options.sockets || new Map();
-    this.socketConfig = defaultSocketConfig;
+    this.sockets = options?.sockets || new Map();
+    this.socketConfig = options?.socketConfig || defaultSocketConfig;
     this.closed = false;
     this.rng = [];
   }
