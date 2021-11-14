@@ -7,7 +7,7 @@ import {
   DEFAULT_WINDOW_SIZE,
   connectionType,
 } from "./PacketTyping";
-import { getMonoTimeStamp, randUint16, randUint32 } from "../utils/math";
+import { getMonoTimeStamp, randUint16, randUint32 } from "../Utils/math";
 import { PacketHeader } from "./PacketHeader";
 
 export class Packet {

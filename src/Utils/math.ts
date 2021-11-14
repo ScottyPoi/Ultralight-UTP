@@ -3,7 +3,7 @@ import { hrtime } from "process";
 import { EXTENSION, ID_MASK, VERSION } from "./constants";
 import { PacketHeader } from "../Packets/PacketHeader";
 import { Packet } from "../Packets/Packet";
-import { Duration, Miliseconds } from "../utp_socket/SocketTypes";
+import { Duration, Miliseconds } from "../Socket/socketTyping";
 import { minimalHeaderSize } from "../Packets/PacketTyping";
 export function getMonoTimeStamp(): Uint32 {
     let time = hrtime.bigint();

@@ -1,5 +1,5 @@
 import { Uint16 } from "@chainsafe/lodestar-types";
-import { IOutgoingPacket, Moment } from "../utp_socket/SocketTypes";
+import { IOutgoingPacket, Moment } from "../Socket/socketTyping";
 
 export class OutgoingPacket {
     packetBytes: Uint8Array;

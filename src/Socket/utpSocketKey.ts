@@ -1,6 +1,6 @@
 import { Uint16 } from "@chainsafe/lodestar-types";
 import { Multiaddr } from "multiaddr";
-import { IUtpSocketKeyOptions } from "./SocketTypes";
+import { IUtpSocketKeyOptions } from "../Socket/socketTyping";
 
 export class UtpSocketKey {
     remoteAddress: Multiaddr;
