@@ -20,5 +20,30 @@
   "bugs": {
     "url": "https://github.com/ScottyPoi/Ultralight-UTP/issues"
   },
-  "homepage": "https://github.com/ScottyPoi/Ultralight-UTP#readme"
+  "homepage": "https://github.com/ScottyPoi/Ultralight-UTP#readme",
+  "dependencies": {
+    "@chainsafe/lodestar-types": "^0.31.0",
+    "@chainsafe/discv5": "github:acolytec3/discv5#9b182f0a54a29cfebdec565af5d20c93794956c3",
+    "@chainsafe/ssz": "^0.8.19",
+    "@types/bn.js": "^5.1.0",
+    "@types/node": "^16.11.6",
+    "bn.js": "^5.2.0",
+    "debug": "^4.3.2",
+    "dgram": "^1.0.1",
+    "multiaddr": "^10.0.1",
+    "peer-id": "^0.15.3",
+    "tape": "^5.3.1"
+  },
+  "peerDependencies": {
+    "bn.js": "^5.2.0"
+  },
+  "devDependencies": {
+    "@types/debug": "^4.1.7",
+    "@types/tape": "^4.13.2",
+    "ts-node": "^10.4.0",
+    "tslib": "^2.3.1",
+    "typedoc": "^0.22.5",
+    "typedoc-plugin-markdown": "^3.11.3",
+    "typescript": "^4.4.2"
+  }
 }
