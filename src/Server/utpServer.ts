@@ -1,16 +1,16 @@
 import { Uint16 } from "@chainsafe/lodestar-types";
-import { none, Option, some } from "./utils/growableBuffer";
-import { decodePacketFromBytes, randUint16 } from "./utils/math";
-import { Packet, createResetPacket } from "./Packets/Packet";
-import { PacketType } from "./Packets/PacketTyping";
-import { initIncomingSocket } from "./utp_socket/IncomingSocket";
-import { initOutgoingSocket } from "./utp_socket/OutGoingSocket";
-import { UtpSocketKey } from "./utp_socket/UtpSocketKey";
+import { none, Option, some } from "../Utils/growableBuffer";
+import { decodePacketFromBytes, randUint16 } from "../Utils/math";
+import { Packet, createResetPacket } from "../Packets/Packet";
+import { PacketType } from "../Packets/PacketTyping";
+import { initIncomingSocket } from "../Socket/incomingSocket";
+import { initOutgoingSocket } from "../Socket/outgoingSocket";
+import { UtpSocketKey } from "../Socket/utpSocketKey";
 import {
   defaultSocketConfig,
   SocketConfig,
   UtpSocket,
-} from "./utp_socket/Utp_socket";
+} from "../Socket/utpSocket";
 import EventEmitter from "events";
 import { Multiaddr } from "multiaddr";
 

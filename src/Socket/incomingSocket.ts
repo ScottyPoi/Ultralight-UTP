@@ -1,8 +1,8 @@
 import { Uint16 } from "@chainsafe/lodestar-types";
 import { Multiaddr } from "multiaddr";
-import { randUint16 } from "../utils/math";
-import { SocketConfig, UtpSocket } from "./Utp_socket";
-import { ConnectionDirection, ConnectionState, SendCallback} from "./SocketTypes";
+import { randUint16 } from "../Utils/math";
+import { SocketConfig, UtpSocket } from "../Socket/utpSocket";
+import { ConnectionDirection, ConnectionState, SendCallback} from "../Socket/socketTyping";
 
 export function initIncomingSocket(
     to: Multiaddr,

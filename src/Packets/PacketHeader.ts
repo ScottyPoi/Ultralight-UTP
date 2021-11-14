@@ -1,7 +1,7 @@
 import { Uint16, Uint32, Uint8 } from "@chainsafe/lodestar-types";
 import { Stream} from "stream";
 import internal = require("stream");
-import { VERSION } from "../utils/constants";
+import { VERSION } from "../Utils/constants";
 import { DEFAULT_WINDOW_SIZE, IPacketHeader, MicroSeconds, PacketHeaderType, PacketType } from "./PacketTyping";
 
 

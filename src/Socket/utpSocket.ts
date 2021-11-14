@@ -1,7 +1,7 @@
 import { Uint16, Uint32 } from "@chainsafe/lodestar-types";
 import assert from "assert";
 import { inspect } from "util";
-import { GrowableCircularBuffer, Option, some } from "../utils/growableBuffer";
+import { GrowableCircularBuffer, Option, some } from "../Utils/growableBuffer";
 import {
   MicroSeconds,
   Packet,
@@ -11,7 +11,7 @@ import {
   createDataPacket,
 } from "../Packets/Packet";
 import { OutgoingPacket } from "../Packets/OutgoingPacket";
-import { max, sleep } from "../utils/math";
+import { max, sleep } from "../Utils/math";
 import {
   Moment,
   ConnectionDirection,
@@ -24,8 +24,8 @@ import {
   IBody,
   mtuSize,
   SocketCloseCallBack,
-} from "./SocketTypes";
-import { UtpSocketKey } from "./UtpSocketKey";
+} from "../Socket/socketTyping";
+import { UtpSocketKey } from "../Socket/utpSocketKey";
 import { Duplex } from "stream";
 import dgram from "dgram";
 import { Multiaddr } from "multiaddr";
