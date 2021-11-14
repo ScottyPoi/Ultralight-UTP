@@ -1,5 +1,5 @@
 
-import { UtpServer } from "../Server/utpServer";
+import UtpServer from "../Server/utpServer";
 import { Multiaddr } from "multiaddr";
 import { SendCallback } from "../Socket/socketTyping";
 import { defaultSocketConfig, UtpSocket } from "../Socket/utpSocket";

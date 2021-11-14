@@ -2,10 +2,12 @@
   "name": "ultralight-utp",
   "version": "1.0.0",
   "description": "Typescript UTP Module",
-  "main": "index.js",
+  "main": "dist/index.js",
   "scripts": {
-    "test": "test"
-  },
+    "dev": "tsc --declaration --outDir dist --watch",
+    "build": "tsc --declaration --outDir dist",
+    "docs": "typedoc src/index.ts",
+    "test": "tape -r  ts-node/register 'tests/**/*.spec.ts'"  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/ScottyPoi/Ultralight-UTP.git"
