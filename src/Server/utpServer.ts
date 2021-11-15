@@ -13,6 +13,7 @@ import {
 } from "../Socket/utpSocket";
 import EventEmitter from "events";
 import { Multiaddr } from "multiaddr";
+import ws from 'ws'
 
 export interface IConnection {
   server: UtpServer;
@@ -28,13 +29,13 @@ export interface IUtpServerOptions {
   socketConfig?: SocketConfig;
 }
 
-export default class UtpServer extends EventEmitter {
+export default class UtpServer extends ws.Server {
   sockets: Map<UtpSocketKey, UtpSocket>;
   socketConfig: typeof defaultSocketConfig;
   closed: boolean;
   rng: number[];
-  constructor(options?: IUtpServerOptions) {
-    super()
+  constructor(options: any) {
+    super(options)
     this.sockets = options?.sockets || new Map();
     this.socketConfig = options?.socketConfig || defaultSocketConfig;
     this.closed = false;
@@ -54,7 +55,7 @@ export default class UtpServer extends EventEmitter {
     // # TODO Rething all this when working on FIN and RESET packets and proper handling
     // # of resources
     this.allSockets().forEach((s) => {
-      s.close();
+      s.socket.close();
     });
   }
   //   # Connect to provided address
@@ -136,7 +137,7 @@ export default class UtpServer extends EventEmitter {
         // # state is that socket in destroy state is ultimatly deleted from active connection
         // # list but socket in reset state lingers there until user of library closes it
         // # explictly.
-        socket.close();
+        socket.socket.close();
       } else {
         console.log("Received rst packet for not known connection");
       }
@@ -193,7 +194,7 @@ export default class UtpServer extends EventEmitter {
           p.header.seqNr,
           randUint16()
         );
-        await maybeSocket.value?.send(rstPacket.encodePacket());
+        await maybeSocket.value?.socket.send(rstPacket.encodePacket());
       }
     }
   }
