@@ -1,13 +1,11 @@
-import { Uint16, Uint32, Uint8 } from "@chainsafe/lodestar-types";
-import internal, { Stream, Writable } from "stream";
+import { Uint16, Uint32} from "@chainsafe/lodestar-types";
+import internal, { Stream } from "stream";
 import {
   protocolVersion,
   PacketType,
   IPacketOptions,
   DEFAULT_WINDOW_SIZE,
-  connectionType,
 } from "./PacketTyping";
-import { getMonoTimeStamp, randUint16, randUint32 } from "../Utils/math";
 import { PacketHeader } from "./PacketHeader";
 
 export class Packet {
@@ -15,11 +13,13 @@ export class Packet {
   payload: Uint8Array;
   sent: number;
   OutputStream: internal.Duplex;
+  size: number;
   constructor(options: IPacketOptions) {
     this.header = options.header;
     this.payload = options.payload;
     this.sent = 0;
     this.OutputStream = new Stream.Duplex()
+    this.size = 1280;
   }
 
   encodePacket(): Uint8Array {
@@ -31,20 +31,6 @@ export class Packet {
     return s.read();
   }
 }
-
-export function createPacket(connection: connectionType, pType: PacketType, data: Uint8Array) {
-  return new Packet({
-    header:  {
-      pType: pType,
-      connectionId: connection.Id,
-      seqNr: connection.seqNr,
-      ackNr: connection.ackNr,
-    } as PacketHeader,
-    payload: data
-  })
-}
-
-// # TODO for now we do not handle extensions
 
 export function createSynPacket(
   rcvConnectionId: Uint16,
@@ -66,6 +52,7 @@ export function createAckPacket(
   seqNr: Uint16,
   sndConnectionId: Uint16,
   ackNr: Uint16,
+  rtt_var: number
 ): Packet {
   let h: PacketHeader = new PacketHeader({
     pType: PacketType.ST_STATE,
@@ -73,6 +60,7 @@ export function createAckPacket(
     seqNr: seqNr,
     ackNr: ackNr,
     wndSize: DEFAULT_WINDOW_SIZE,
+    timestampDiff: rtt_var
   });
 
   const packet: Packet = new Packet({ header: h, payload: new Uint8Array(0) });
@@ -84,15 +72,15 @@ export function createDataPacket(
   sndConnectionId: Uint16,
   ackNr: Uint16,
   bufferSize: Uint32,
-  payload: Uint8Array
+  payload: Uint8Array,
+  rtt_var: number
 ): Packet {
   let h: PacketHeader = new PacketHeader({
     pType: PacketType.ST_DATA,
     version: protocolVersion,
     extension: 0,
     connectionId: sndConnectionId,
-    timestamp: getMonoTimeStamp(),
-    timestampDiff: 0,
+    timestampDiff: rtt_var,
     wndSize: bufferSize,
     seqNr: seqNr,
     ackNr: ackNr,
@@ -105,7 +93,6 @@ export function createResetPacket(
   seqNr: Uint16,
   sndConnectionId: Uint16,
   ackNr: Uint16,
-  bufferSize: Uint32
 ): Packet {
   let h = new PacketHeader({
     pType: PacketType.ST_RESET,
@@ -122,10 +109,8 @@ export function createResetPacket(
 }
 
 export function createFinPacket(
-  seqNr: number,
-  connectionId: number,
+  connectionId: Uint16,
   ackNr: number,
-  wndSize?: number, 
 ): Packet {
   let h = new PacketHeader({
     pType: PacketType.ST_FIN,
@@ -135,7 +120,7 @@ export function createFinPacket(
     timestamp: Date.now(),
     timestampDiff: 0,
     wndSize: DEFAULT_WINDOW_SIZE,
-    seqNr: seqNr,
+    seqNr: Number("eof_pkt") as Uint16,
     ackNr: ackNr
   })
   return new Packet({header: h, payload: new Uint8Array()})

@@ -1,46 +1,71 @@
+import UtpServer from "../Server/utpServer";
+import { _UTPSocket } from "../Socket/_UTPSocket";
+import { ConnectionState, Packet, randUint16 } from "..";
 
-// import UtpServer from "../Server/utpServer";
-// import { Multiaddr } from "multiaddr";
-// import { SendCallback } from "../Socket/socketTyping";
-// import { defaultSocketConfig, UtpSocket } from "../Socket/utpSocket";
+export class UtpProtocol {
+  socket: _UTPSocket;
+  utpServer: UtpServer;
+  payload: Buffer;
+  payloadChunks: Uint8Array[];
 
-// export interface IUtpProtocolOptions {
-//   transport: UtpSocket;
-//   utpServer: UtpServer;
-// }
+  constructor(payload: Buffer = Buffer.alloc(0)) {
+    this.payload = payload;
+    this.socket = new _UTPSocket();
+    this.utpServer = new UtpServer({});
+    // TODO:  ACTUAL CHUNKING MATH
+    this.payloadChunks = [Uint8Array.from(payload.subarray(0))];
+  }
 
-// export class UtpProtocol {
-//   transport: UtpSocket;
-//   utpServer: UtpServer;
-//   constructor(options: IUtpProtocolOptions) {
-//     this.transport = options.transport;
-//     this.utpServer = options.utpServer;
-//   }
+  nextChunk(): Uint8Array {
+    return this.payloadChunks.pop() as Uint8Array;
+  }
 
-//   async processDatagram(
-//     raddr: Multiaddr
-//   ): Promise<void> {
-//       let buf = this.transport.buffer
-//       this.utpServer.processIncomingBytes(buf, raddr);
-//   }
+  initiateSyn() {
+    this.socket.sendSyn();
+  }
 
-//   async shutdownWait(): Promise<void> {
-//     await this.utpServer.shutdownWait();
-//     await this.transport.closeWait()
-//   }
+  async handleAck(ack: Packet): Promise<void> {
+    this.socket.state = ConnectionState.Connected;
+    this.socket.ackNr = ack.header.seqNr;
+    this.payloadChunks.length > 0
+    ? this.sendData(this.nextChunk())
+    : this.socket.sendFin();
+  }
+  
+  sendData(chunk: Uint8Array): void {
+    this.socket.sendData(
+      this.socket.seqNr,
+      this.socket.ackNr,
+      this.socket.sndConnectionId,
+      chunk
+    );
+  }
 
-//   async connectTo(address: Multiaddr) {
-//       return this.utpServer.connectTo(address);
-//   }
+  handleIncomingSyn(packet: Packet) {
+    this.socket.updateRTT(packet.header.timestampDiff);
+    this.socket.rcvConnectionId = packet.header.connectionId + 1;
+    this.socket.sndConnectionId = packet.header.connectionId;
+    this.socket.seqNr = randUint16();
+    this.socket.ackNr = packet.header.seqNr;
+    this.socket.state = ConnectionState.SynRecv;
+    this.socket.sendAck(
+      this.socket.seqNr++,
+      this.socket.sndConnectionId,
+      this.socket.ackNr
+    );
+  }
 
-//   openSockets(): number {
-//       return this.utpServer.len()
-//   }
+  handleIncomingData(packet: Packet) {
+    this.socket.updateRTT(packet.header.timestampDiff);
+    this.socket.ackNr = packet.header.seqNr;
+    this.socket.state = ConnectionState.Connected;
+    this.socket.sendAck(
+      this.socket.seqNr++,
+      this.socket.ackNr,
+      this.socket.sndConnectionId
+    );
+  }
 
-//   initSendCallback(transport: UtpSocket): SendCallback {
-//     let cb: SendCallback = (to: Multiaddr, data: Uint8Array) =>
-//       transport.send(data, to.nodeAddress().port, to.nodeAddress().address)
-//     return cb
-// }
 
-// }
+
+}
