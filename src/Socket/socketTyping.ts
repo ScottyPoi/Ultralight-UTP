@@ -1,11 +1,8 @@
 import { Uint16, Uint32 } from "@chainsafe/lodestar-types";
-import { GrowableCircularBuffer } from "../Utils/growableBuffer";
 import { Packet } from "../Packets/Packet";
-import { OutgoingPacket } from "../Packets/OutgoingPacket";
 // import { UtpSocketKey } from "./UtpSocketKey";
 // import {SocketConfig} from './utp_socket'
 import dgram from 'dgram';
-import { SocketConfig } from './../Socket/utpSocket'
 import { Multiaddr } from "multiaddr";
 
 export const reorderBufferMaxSize: number = 1024;
@@ -82,7 +79,6 @@ export interface IUtpSocket {
   connectionIdSnd: Uint16;
   direction: ConnectionDirection;
   seqNr: Uint16;
-  socketConfig: SocketConfig;
   state: ConnectionState;
 }
 

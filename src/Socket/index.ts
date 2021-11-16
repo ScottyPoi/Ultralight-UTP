@@ -1,5 +1,2 @@
-export * from './incomingSocket'
-export * from './outgoingSocket'
+export * from './_UTPSocket'
 export * from './socketTyping'
-export * from './utpSocket'
-export * from './utpSocketKey'

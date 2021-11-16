@@ -1,17 +1,14 @@
-import UtpServer from "../Server/utpServer";
 import { _UTPSocket } from "../Socket/_UTPSocket";
 import { ConnectionState, Packet, randUint16 } from "..";
 
 export class UtpProtocol {
   socket: _UTPSocket;
-  utpServer: UtpServer;
   payload: Buffer;
   payloadChunks: Uint8Array[];
 
   constructor(payload: Buffer = Buffer.alloc(0)) {
     this.payload = payload;
     this.socket = new _UTPSocket();
-    this.utpServer = new UtpServer({});
     // TODO:  ACTUAL CHUNKING MATH
     this.payloadChunks = [Uint8Array.from(payload.subarray(0))];
   }
