@@ -11,41 +11,42 @@ import {
   SocketConfig,
   UtpSocket,
 } from "../Socket/utpSocket";
-import EventEmitter from "events";
 import { Multiaddr } from "multiaddr";
+import ws from 'ws';
+import { _UTPSocket } from "../Socket/_UTPSocket";
 
 export interface IConnection {
   server: UtpServer;
-  client: UtpSocket;
+  client: _UTPSocket;
 }
 
 export type AcceptConnectionCallback = (
-  client: UtpSocket
+  client: _UTPSocket
 ) => Promise<void>;
 
 export interface IUtpServerOptions {
-  sockets?: Map<UtpSocketKey, UtpSocket>;
+  sockets?: Map<UtpSocketKey, _UTPSocket>;
   socketConfig?: SocketConfig;
 }
 
-export default class UtpServer extends EventEmitter {
-  sockets: Map<UtpSocketKey, UtpSocket>;
+export default class UtpServer extends ws.Server {
+  sockets: Map<UtpSocketKey, _UTPSocket>;
   socketConfig: typeof defaultSocketConfig;
   closed: boolean;
   rng: number[];
-  constructor(options?: IUtpServerOptions) {
-    super()
+  constructor(options: any) {
+    super(options)
     this.sockets = options?.sockets || new Map();
     this.socketConfig = options?.socketConfig || defaultSocketConfig;
     this.closed = false;
     this.rng = [];
   }
 
-  async acceptConnectionCallback(client: UtpSocket): Promise<void> {
+  async acceptConnectionCallback(client: _UTPSocket): Promise<void> {
     client.sendAck();
   }
 
-  allSockets(): UtpSocket[] {
+  allSockets(): _UTPSocket[] {
     return Array.from(this.sockets.values());
   }
 
@@ -59,7 +60,7 @@ export default class UtpServer extends EventEmitter {
   }
   //   # Connect to provided address
   //   # Reference implementation: https://github.com/bittorrent/libutp/blob/master/utp_internal.cpp#L2732
-  async connectTo(address: Multiaddr): Promise<UtpSocket> {
+  async connectTo(address: Multiaddr): Promise<_UTPSocket> {
     let config = this.socketConfig as SocketConfig;
     let socket = initOutgoingSocket(address, config);
     // this.registerUtpSocket(socket);
@@ -68,14 +69,14 @@ export default class UtpServer extends EventEmitter {
     return socket;
   }
 
-  // deRegisterUtpSocket(socket: UtpSocket) {
+  // deRegisterUtpSocket(socket: _UTPSocket) {
   //   this.sockets.delete(socket.socketKey as UtpSocketKey);
   // }
 
   // # There are different possiblites how connection was established, and we need to
   // # check every case
 
-  getSocketOnReset(sender: Multiaddr, id: Uint16): Option<UtpSocket> {
+  getSocketOnReset(sender: Multiaddr, id: Uint16): Option<_UTPSocket> {
     //   # id is our recv id
     let recvKey = new UtpSocketKey({ remoteAddress: sender, rcvId: id });
 
@@ -97,10 +98,10 @@ export default class UtpServer extends EventEmitter {
       this.getUtpSocket(sendNoInitKey)
     );
   }
-  getUtpSocket(k: UtpSocketKey): Option<UtpSocket> {
+  getUtpSocket(k: UtpSocketKey): Option<_UTPSocket> {
     let s = this.sockets.get(k);
     if (!s) {
-      return none<UtpSocket>();
+      return none<_UTPSocket>();
     } else {
       return some(s);
     }
@@ -136,7 +137,7 @@ export default class UtpServer extends EventEmitter {
         // # state is that socket in destroy state is ultimatly deleted from active connection
         // # list but socket in reset state lingers there until user of library closes it
         // # explictly.
-        socket.close();
+        socket.socket.close();
       } else {
         console.log("Received rst packet for not known connection");
       }
@@ -147,7 +148,7 @@ export default class UtpServer extends EventEmitter {
         rcvId: p.header.connectionId + 1,
       });
       let maybeSocket = this.getUtpSocket(socketKey);
-      let socket = this.sockets.get(socketKey) as UtpSocket;
+      let socket = this.sockets.get(socketKey) as _UTPSocket;
       if (maybeSocket.isSome()) {
         console.log("Ignoring SYN for already existing connection");
       } else {
@@ -191,7 +192,6 @@ export default class UtpServer extends EventEmitter {
           p.header.seqNr,
           p.header.connectionId,
           p.header.seqNr,
-          randUint16()
         );
         await maybeSocket.value?.send(rstPacket.encodePacket());
       }
@@ -199,13 +199,13 @@ export default class UtpServer extends EventEmitter {
   }
 
   async shutdownWait() {
-    let activeSockets: UtpSocket[] = [];
+    let activeSockets: _UTPSocket[] = [];
     this.closed = true;
     this.allSockets().forEach((s) => {
       activeSockets.push(s);
     });
     activeSockets.forEach((s) => {
-      s.closeWait();
+      s.close();
     });
   }
 }

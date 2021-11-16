@@ -1,8 +1,7 @@
 import { Uint16, Uint32, Uint8 } from "@chainsafe/lodestar-types";
 import internal, { Stream} from "stream";
-
 import { VERSION } from "../Utils/constants";
-import { DEFAULT_WINDOW_SIZE, IPacketHeader, MicroSeconds, PacketHeaderType, PacketType } from "./PacketTyping";
+import { DEFAULT_WINDOW_SIZE, IPacketHeader, MicroSeconds, PacketType } from "./PacketTyping";
 
 
 
@@ -13,7 +12,7 @@ export class PacketHeader {
     connectionId: Uint16;
     timestamp: MicroSeconds;
     timestampDiff: MicroSeconds;
-    wndSize: Uint32;
+    wndSize?: Uint32;
     seqNr: Uint16;
     ackNr: Uint16;
   
@@ -22,7 +21,7 @@ export class PacketHeader {
         this.version = options.version || VERSION;
         this.extension = 0
         this.connectionId = options.connectionId
-        this.timestamp = options.timestamp || Date.now()
+        this.timestamp = performance.now()
         this.timestampDiff = options.timestampDiff || 0
         this.wndSize = options.wndSize || DEFAULT_WINDOW_SIZE
         this.seqNr = options.seqNr
@@ -40,12 +39,12 @@ encodeHeaderStream() {
     try {
         this.OutputStream.write(this.encodeTypeVer);
         this.OutputStream.write(this.extension);
-        this.OutputStream.write(this.connectionId.toString(16));
-        this.OutputStream.write(this.timestamp.toString(16));
-        this.OutputStream.write(this.timestampDiff.toString(16));
-        this.OutputStream.write(this.wndSize.toString(16));
-        this.OutputStream.write(this.seqNr.toString(16));
-        this.OutputStream.write(this.ackNr.toString(16));
+        this.OutputStream.write(this.connectionId);
+        this.OutputStream.write(this.timestamp);
+        this.OutputStream.write(this.timestampDiff);
+        this.OutputStream.write(this.wndSize);
+        this.OutputStream.write(this.seqNr);
+        this.OutputStream.write(this.ackNr);
       } catch (error) {
         console.error(error);
       }

@@ -26,17 +26,19 @@ import {
   SocketCloseCallBack,
 } from "../Socket/socketTyping";
 import { UtpSocketKey } from "../Socket/utpSocketKey";
-import { Duplex } from "stream";
+import { Duplex, EventEmitter } from "stream";
 import dgram from "dgram";
 import { Multiaddr } from "multiaddr";
 
 export type SocketConfig = typeof defaultSocketConfig;
+const MAX_PACKET_SIZE = 1280;
+
 
 export const defaultSocketConfig = {
   buffer: Buffer.alloc(20),
   _checkTimeoutsLoop: Promise.prototype,
   closeCallbacks: [],
-  closeEvent: new CloseEvent("close"),
+  // closeEvent: ,
   connectionFuture: Promise.prototype,
   curWindowPackets: 0,
   dataResendsBeforeFailure: 5,
@@ -51,12 +53,13 @@ export const defaultSocketConfig = {
   rttVar: 0,
 };
 
-export class UtpSocket extends dgram.Socket {
+export class UtpSocket{
+  socket: dgram.Socket
   ackNr: Uint16;
   buffer: Buffer;
   _checkTimeoutsLoop?: Promise<void>;
   closeCallbacks: Promise<void>[];
-  closeEvent: CloseEvent;
+  // closeEvent: () => void;
   connectionFuture: Promise<void>;
   connectionIdRcv: Uint16;
   connectionIdSnd: Uint16;
@@ -77,19 +80,23 @@ export class UtpSocket extends dgram.Socket {
   state: ConnectionState;
   // socketKey: UtpSocketKey;
 
-  constructor(options: IUtpSocket) {
-    super();
-    this.ackNr = options.ackNr;
-    this.connectionIdRcv = options.connectionIdRcv;
-    this.connectionIdSnd = options.connectionIdSnd;
-    this.direction = options.direction;
-    this.remoteaddress = options.remoteaddress;
-    this.seqNr = options.seqNr;
-    this.state = options.state;
+  constructor(options?: IUtpSocket) {
+    this.socket = dgram.createSocket({
+      recvBufferSize: 16 * MAX_PACKET_SIZE,
+      sendBufferSize: MAX_PACKET_SIZE,
+      type: "udp4"
+    })
+    this.ackNr = 0;
+    this.connectionIdRcv = 0;
+    this.connectionIdSnd = 0;
+    this.direction = ConnectionDirection.Outgoing;
+    this.remoteaddress = new Multiaddr('127.0.0.1/udp/0')
+    this.seqNr = 0;
+    this.state = ConnectionState.Connected;
     this.buffer = defaultSocketConfig.buffer;
     this._checkTimeoutsLoop = defaultSocketConfig._checkTimeoutsLoop;
     this.closeCallbacks = defaultSocketConfig.closeCallbacks;
-    this.closeEvent = defaultSocketConfig.closeEvent;
+    // this.closeEvent = defaultSocketConfig.closeEvent;
     this.connectionFuture = defaultSocketConfig.connectionFuture;
     this.curWindowPackets = defaultSocketConfig.curWindowPackets;
     this.dataResendsBeforeFailure =
@@ -111,10 +118,10 @@ export class UtpSocket extends dgram.Socket {
     var i = 0;
     while (i < nrPacketsToAck) {
       let result = this.ackPacketResult(this.seqNr - this.curWindowPackets);
-      result == AckResult.PacketAcked
-        ? this.curWindowPackets
-        : result == AckResult.PacketAlreadyAcked
-        ? this.curWindowPackets
+      result === AckResult.PacketAcked
+        ? this.curWindowPackets--
+        : result === AckResult.PacketAlreadyAcked
+        ? this.curWindowPackets++
         : console.log("Tried to ack packet which was not sent yet");
       i++;
     }
@@ -124,7 +131,7 @@ export class UtpSocket extends dgram.Socket {
     if (packetOpt.isSome()) {
       let packet = packetOpt.get();
 
-      if (packet.transmissions == 0) {
+      if (packet.transmissions === 0) {
         //   # according to reference impl it can happen when we get an ack_nr that
         //   # does not exceed what we have stuffed into the outgoing buffer,
         //   # but does exceed what we have sent
@@ -169,7 +176,7 @@ export class UtpSocket extends dgram.Socket {
         //   # client initiated connections, but did not send following data packet in rto
         //   # time. TODO this should be configurable
         if (this.state == ConnectionState.SynRecv) {
-          this.close();
+          this._close();
           return;
         }
 
@@ -183,7 +190,7 @@ export class UtpSocket extends dgram.Socket {
             this.connectionFuture = Promise.reject(
               "Connection to Peer timed out"
             );
-          this.close();
+          this._close();
           return;
         }
 
@@ -221,13 +228,13 @@ export class UtpSocket extends dgram.Socket {
   _close() {
     this.state = ConnectionState.Destroy;
     this._checkTimeoutsLoop = Promise.reject<void>();
-    this.closeEvent.stopPropagation();
+    // this.closeEvent.stopPropagation();
   }
 
   async closeWait(): Promise<void> {
     // # TODO Rething all this when working on FIN packets and proper handling
     // # of resources
-    this.close();
+    this._close();
     await Promise.allSettled(this.closeCallbacks);
   }
 
@@ -338,7 +345,7 @@ export class UtpSocket extends dgram.Socket {
     return this.sendData(this.connectionIdSnd, ack.encodePacket());
   }
   sendData(connectionId: number, data: Uint8Array): void {
-    return this.send(data, connectionId, data.length);
+    return this.socket.send(data, connectionId, data.length);
   }
 
   async startIncomingSocket() {
@@ -563,7 +570,7 @@ export class UtpSocket extends dgram.Socket {
   async setCloseCallback(cb: SocketCloseCallBack): Promise<void> {
     // ## Set callback which will be called whenever the socket is permanently closed
     try {
-      assert(this.closeEvent);
+      // assert(this.closeEvent);
       cb();
     } catch (CancelledError) {
       console.log("closeCallback cancelled");
