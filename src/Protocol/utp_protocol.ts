@@ -3,12 +3,16 @@ import { ConnectionState, Packet, randUint16 } from "..";
 
 export class UtpProtocol {
   socket: _UTPSocket;
+
+  // transport: PortalNetwork;
   payload: Buffer;
   payloadChunks: Uint8Array[];
 
-  constructor(payload: Buffer = Buffer.alloc(0)) {
-    this.payload = payload;
+  // constructor(payload: Buffer, transport: PortalNetwork) {
+  constructor(payload: Buffer) {
+  this.payload = payload;
     this.socket = new _UTPSocket();
+    // this.transport = transport
     // TODO:  ACTUAL CHUNKING MATH
     this.payloadChunks = [Uint8Array.from(payload.subarray(0))];
   }
