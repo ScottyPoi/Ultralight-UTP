@@ -11,11 +11,14 @@ export class UtpProtocol {
   constructor(client: Discv5) {
   this.client = client;
     this.socket = new _UTPSocket(client);
-    // TODO:  ACTUAL CHUNKING MATH
     this.payloadChunks = [];
   }
 
-  processPayload(payload: Buffer): void {
+
+  // TODO: Chop up CONTENT into chunks.
+  // TODO: Reassemble chunks
+
+  processContent(payload: Buffer): void {
     let packetSize = 1200;
     for (let i=0; i<payload.length; i+= packetSize) {
       this.payloadChunks.push(payload.subarray(i, i+packetSize))
@@ -31,20 +34,20 @@ export class UtpProtocol {
   
   
   
-  initiateSyn(dstId: string) {
-    this.socket.sendSyn(dstId);
+  async initiateSyn(dstId: string): Promise<void> {
+    await this.socket.sendSyn(dstId);
   }
   
   async handleAck(ack: Packet, dstId: string): Promise<void> {
     this.socket.state = ConnectionState.Connected;
     this.socket.ackNr = ack.header.seqNr;
     this.payloadChunks.length > 0
-    ? this.sendData(this.nextChunk(), dstId)
-    : this.socket.sendFin(dstId);
+    ? await this.sendData(this.nextChunk(), dstId)
+    : await this.socket.sendFin(dstId);
   }
   
-  sendData(chunk: Uint8Array, dstId: string): void {
-    this.socket.sendData(
+  async sendData(chunk: Uint8Array, dstId: string): Promise<void> {
+    await this.socket.sendData(
       this.socket.seqNr,
       this.socket.ackNr,
       this.socket.sndConnectionId,
@@ -53,7 +56,7 @@ export class UtpProtocol {
       );
     }
     
-    handleIncomingSyn(packetAsBuffer: Buffer, srcId: string): void {
+    async handleIncomingSyn(packetAsBuffer: Buffer, srcId: string): Promise<void> {
       const packet: Packet = bufferToPacket(packetAsBuffer)
     this.socket.updateRTT(packet.header.timestampDiff);
     this.socket.rcvConnectionId = packet.header.connectionId + 1;
@@ -61,7 +64,7 @@ export class UtpProtocol {
     this.socket.seqNr = randUint16();
     this.socket.ackNr = packet.header.seqNr;
     this.socket.state = ConnectionState.SynRecv;
-    this.socket.sendAck(
+    await this.socket.sendAck(
       this.socket.seqNr++,
       this.socket.sndConnectionId,
       this.socket.ackNr,
@@ -69,11 +72,11 @@ export class UtpProtocol {
     );
   }
 
-  handleIncomingData(packet: Packet, dstId: string) {
+  async handleIncomingData(packet: Packet, dstId: string): Promise<void> {
     this.socket.updateRTT(packet.header.timestampDiff);
     this.socket.ackNr = packet.header.seqNr;
     this.socket.state = ConnectionState.Connected;
-    this.socket.sendAck(
+    await this.socket.sendAck(
       this.socket.seqNr++,
       this.socket.ackNr,
       this.socket.sndConnectionId,

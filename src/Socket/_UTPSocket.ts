@@ -53,23 +53,23 @@ export class _UTPSocket extends EventEmitter {
   }
   async sendPacket(packet: Packet, dstId: string, type: PacketType): Promise<void> {
     let msg = packet.encodePacket();
-    assert(this.validatePacketSize(packet), `Packet too large for max_window: ${this.max_window}`);
+    assert(this.validatePacketSize(packet), `Packet size ${packet.encodePacket().length} too large for max_window: ${this.max_window}`);
     await this.client.sendTalkReq(dstId, msg, "utp");
     console.log(`${type} packet sent.`)
   }
 
-  sendAck(
+  async sendAck(
     seqNr: number,
     sndConnectionId: number,
     ackNr: number,
     dstId: string
-  ): void {
+  ): Promise<void> {
     const packet = createAckPacket(seqNr, sndConnectionId, ackNr, this.rtt_var);
     console.log(`Sending ack packet ${packet}`);
-    this.sendPacket(packet, dstId, PacketType.ST_STATE);
+    await this.sendPacket(packet, dstId, PacketType.ST_STATE);
   }
 
-  sendSyn(dstId: string): void {
+  async sendSyn(dstId: string): Promise<void> {
     assert(this.state === ConnectionState.SynSent);
     let packet = createSynPacket(
       this.rcvConnectionId,
@@ -77,34 +77,37 @@ export class _UTPSocket extends EventEmitter {
       this.ackNr
     );
     this.seqNr++;
-    console.log(`Sending syn packet ${packet}`);
-    this.sendPacket(packet, dstId, PacketType.ST_SYN);
+    console.log(`Sending SYN packet ${packet} to ${dstId}`);
+    await this.sendPacket(packet, dstId, PacketType.ST_SYN);
+    console.log(`SYN packet ${packet} sent to ${dstId}`);
   }
 
-  sendFin(dstId: string) {
+  async sendFin(dstId: string) {
     let packet = createFinPacket(this.sndConnectionId, this.ackNr);
-    console.log(`Sending FIN packet ${packet}`);
-    this.sendPacket(packet, dstId, PacketType.ST_FIN);
+    console.log(`Sending FIN packet ${packet} to ${dstId}`);
+    await this.sendPacket(packet, dstId, PacketType.ST_FIN);
     this.seqNr = Number("eof_pkt");
+    console.log(`FIN packet ${packet} sent to ${dstId}`);
   }
 
-  sendReset(dstId: string) {
+  async sendReset(dstId: string) {
     let packet = createResetPacket(
       this.seqNr,
       this.sndConnectionId,
       this.ackNr
     );
-    console.log(`Sending RESET packet ${packet}`);
-    this.sendPacket(packet, dstId, PacketType.ST_RESET);
+    console.log(`Sending RESET packet ${packet} to ${dstId}`);
+    await this.sendPacket(packet, dstId, PacketType.ST_RESET);
+    console.log(`RESET packet ${packet} sent to ${dstId}`);
   }
 
-  sendData(
+  async sendData(
     seqNr: number,
     ackNr: number,
     sndConnectionId: number,
     payload: Uint8Array,
     dstId: string
-  ): void {
+  ): Promise<void> {
     let packet = createDataPacket(
       seqNr,
       sndConnectionId,
@@ -113,8 +116,9 @@ export class _UTPSocket extends EventEmitter {
       payload,
       this.rtt_var
     );
-    console.log(`Sending DATA packet ${packet}`);
-    this.sendPacket(packet, dstId, PacketType.ST_DATA);
+    console.log(`Sending DATA packet ${packet} to ${dstId}`);
+    await this.sendPacket(packet, dstId, PacketType.ST_DATA);
+    console.log(`DATA packet ${packet} sent to ${dstId}`);
   }
 
   updateRTT(packetRTT: number) {
