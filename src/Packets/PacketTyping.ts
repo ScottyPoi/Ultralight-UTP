@@ -1,4 +1,3 @@
-import { Uint16, Uint32, Uint8 } from "@chainsafe/lodestar-types";
 import { Multiaddr } from "multiaddr";
 import { PacketHeader } from "./PacketHeader";
 
@@ -19,6 +18,9 @@ export const CLOSE_GRACE = 5000;
 
 export const BUFFER_SIZE = 512;
 
+export type Uint8 = number;
+export type Uint16 = number;
+export type Uint32 = number;
 export type MicroSeconds = Uint32;
 
 export interface connectionType {

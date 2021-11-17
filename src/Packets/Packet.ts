@@ -1,4 +1,3 @@
-import { Uint16, Uint32} from "@chainsafe/lodestar-types";
 import internal, { Stream } from "stream";
 import {
   protocolVersion,
@@ -7,6 +6,10 @@ import {
   DEFAULT_WINDOW_SIZE,
 } from "./PacketTyping";
 import { PacketHeader } from "./PacketHeader";
+import { Uint16, Uint32 } from ".";
+
+
+
 
 export class Packet {
   header: PacketHeader;
@@ -22,13 +25,13 @@ export class Packet {
     this.size = 1280;
   }
 
-  encodePacket(): Uint8Array {
+  encodePacket(): Buffer {
     let s = this.OutputStream;
     this.header.encodeHeaderStream();
     if (this.payload.length > 0) {
       s.write(this.payload);
     }
-    return s.read();
+    return Buffer.from(s.read())
   }
 }
 
