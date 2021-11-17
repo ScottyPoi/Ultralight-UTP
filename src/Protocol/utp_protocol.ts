@@ -3,23 +3,30 @@ import { ConnectionState, Packet, randUint16 } from "..";
 
 export class UtpProtocol {
   socket: _UTPSocket;
-
-  // transport: PortalNetwork;
-  payload: Buffer;
+  client: 
   payloadChunks: Uint8Array[];
 
-  // constructor(payload: Buffer, transport: PortalNetwork) {
-  constructor(payload: Buffer) {
-  this.payload = payload;
+  constructor(portal) {
+  // this.payload = payload;
     this.socket = new _UTPSocket();
-    // this.transport = transport
     // TODO:  ACTUAL CHUNKING MATH
-    this.payloadChunks = [Uint8Array.from(payload.subarray(0))];
+    this.payloadChunks = [];
   }
 
+  processPayload(payload: Buffer): void {
+    let packetSize = 1200;
+    for (let i=0; i<payload.length; i+= packetSize) {
+      this.payloadChunks.push(payload.subarray(i, i+packetSize))
+    }
+  }
+
+  
+  
   nextChunk(): Uint8Array {
     return this.payloadChunks.pop() as Uint8Array;
   }
+
+
 
   initiateSyn() {
     this.socket.sendSyn();

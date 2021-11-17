@@ -33,13 +33,6 @@ export class _UTPSocket extends EventEmitter {
   rtt_var: number
   constructor() {
       super()
-    Object.setPrototypeOf(_UTPSocket, () =>
-      dgram.createSocket({
-        recvBufferSize: MAX_WINDOW,
-        sendBufferSize: MAX_WINDOW,
-        type: "udp4",
-      })
-    );
     this.seqNr = 1;
     this.ackNr = 0;
     this.rcvConnectionId = randUint16();

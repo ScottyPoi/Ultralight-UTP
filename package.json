@@ -34,6 +34,7 @@
     "dgram": "^1.0.1",
     "multiaddr": "^10.0.1",
     "peer-id": "^0.15.3",
+    "portalnetwork": "file:../portalnetwork/dist",
     "tape": "^5.3.1"
   },
   "peerDependencies": {
