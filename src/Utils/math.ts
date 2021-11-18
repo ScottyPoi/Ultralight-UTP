@@ -62,17 +62,17 @@ export function getMonoTimeStamp(): Uint32 {
   export function bufferToPacket(buffer: Buffer): Packet {
     let packet: Packet = new Packet({
       header: new PacketHeader({
-        pType: 0,
-        version: 1,
-        extension: 0,
-        connectionId: buffer[0] & ID_MASK,
-        timestamp: buffer.readUInt16BE(2),
-        timestampDiff: buffer.readUInt32BE(4),
-        wndSize: buffer.readUInt32BE(12),
-        seqNr: buffer.readUInt16BE(16),
-        ackNr: buffer.readUInt16BE(18)
+        pType: buffer.readUInt8(0),
+        version: buffer.readUInt8(1),
+        extension: buffer.readUInt16BE(2),
+        connectionId: buffer.readUInt16BE(4),
+        timestamp: buffer.readUInt32BE(6),
+        timestampDiff: buffer.readUInt32BE(10),
+        wndSize: buffer.readUInt32BE(14),
+        seqNr: buffer.readUInt16BE(18),
+        ackNr: buffer.readUInt16BE(20)
       }),
-      payload: buffer.slice(20)
+      payload: buffer.subarray(20)
       }
     )
     return packet
