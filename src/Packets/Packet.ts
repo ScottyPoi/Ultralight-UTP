@@ -32,11 +32,7 @@ export class Packet {
     buffer.writeUInt32BE(this.header.wndSize, 12);
     buffer.writeUInt16BE(this.header.seqNr, 16);
     buffer.writeUInt16BE(this.header.seqNr, 18);
-    if (this.payload) {
-      return Buffer.from(this.payload)
-    } else {
-      return Buffer.alloc(20)
-    }
+    return buffer
   
   }
 }
