@@ -19,11 +19,11 @@ export class Packet {
     this.header = options.header;
     this.payload = options.payload;
     this.sent = 0;
-    this.size = 1280;
+    this.size = 20 + this.payload.length;
   }
 
   encodePacket(): Buffer {
-    let buffer = Buffer.alloc(20 + (this.payload ? this.payload.length : 0))
+    let buffer = Buffer.alloc(this.size)
     buffer[0] = 1
     buffer[1] = 0
     buffer.writeUInt16BE(this.header.connectionId, 2);
