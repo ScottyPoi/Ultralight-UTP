@@ -1,4 +1,3 @@
-import internal, { Stream } from "stream";
 import {
   protocolVersion,
   PacketType,
@@ -7,7 +6,6 @@ import {
 } from "./PacketTyping";
 import { PacketHeader } from "./PacketHeader";
 import { Uint16, Uint32 } from ".";
-import { packetToBuffer } from "..";
 
 
 
