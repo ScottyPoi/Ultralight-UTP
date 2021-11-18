@@ -1,6 +1,5 @@
 import { _UTPSocket } from "../Socket/_UTPSocket";
 import { bufferToPacket, ConnectionState, Packet, randUint16 } from "..";
-import {PortalNetwork} from '../../../../../dist';
 import { Discv5 } from "@chainsafe/discv5";
 
 export class UtpProtocol {
