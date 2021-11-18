@@ -16,13 +16,11 @@ export class Packet {
   header: PacketHeader;
   payload: Uint8Array;
   sent: number;
-  // OutputStream: internal.Duplex;
   size: number;
   constructor(options: IPacketOptions) {
     this.header = options.header;
     this.payload = options.payload;
     this.sent = 0;
-    // this.OutputStream = new Stream.Duplex()
     this.size = 1280;
   }
 
