@@ -1,5 +1,4 @@
-import { Uint16, Uint32, Uint8 } from "@chainsafe/lodestar-types";
-import internal, { Stream} from "stream";
+import { Uint16, Uint32, Uint8 } from '..' 
 import { VERSION } from "../Utils/constants";
 import { DEFAULT_WINDOW_SIZE, IPacketHeader, MicroSeconds, PacketType } from "./PacketTyping";
 
@@ -27,7 +26,6 @@ export class PacketHeader {
         this.seqNr = options.seqNr
         this.ackNr = options.ackNr;
     } 
-    OutputStream: internal.Duplex = new Stream.Duplex()
 encodeTypeVer(): Uint8 {
     let typeVer: Uint8 = 0;
     let typeOrd: Uint8 = this.pType;
@@ -35,19 +33,17 @@ encodeTypeVer(): Uint8 {
     typeVer = (typeVer & 0xf) | (typeOrd << 4);
     return typeVer;
   }
-encodeHeaderStream() {
-    try {
-        this.OutputStream.write(this.encodeTypeVer);
-        this.OutputStream.write(this.extension);
-        this.OutputStream.write(this.connectionId);
-        this.OutputStream.write(this.timestamp);
-        this.OutputStream.write(this.timestampDiff);
-        this.OutputStream.write(this.wndSize);
-        this.OutputStream.write(this.seqNr);
-        this.OutputStream.write(this.ackNr);
-      } catch (error) {
-        console.error(error);
-      }
-    }
+encodeHeaderStream(): Buffer {
+  let buffer = Buffer.alloc(20)
+  buffer[0] = 1
+  buffer[1] = 0
+  buffer.writeUInt16BE(this.connectionId, 2);
+  buffer.writeUInt32BE(this.timestamp, 4);
+  buffer.writeUInt32BE(this.timestampDiff as number, 8);
+  buffer.writeUInt32BE(this.wndSize as number, 12);
+  buffer.writeUInt16BE(this.seqNr, 16);
+  buffer.writeUInt16BE(this.seqNr, 18);
+  return buffer
 
+}
 }

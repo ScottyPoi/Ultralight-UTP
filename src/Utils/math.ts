@@ -1,4 +1,4 @@
-import { Uint16, Uint32 } from "@chainsafe/lodestar-types";
+import { Uint16, Uint32 } from "..";
 import { hrtime } from "process";
 import { EXTENSION, ID_MASK, VERSION } from "./constants";
 import { PacketHeader } from "../Packets/PacketHeader";

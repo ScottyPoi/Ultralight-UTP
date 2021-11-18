@@ -7,6 +7,7 @@ import {
 } from "./PacketTyping";
 import { PacketHeader } from "./PacketHeader";
 import { Uint16, Uint32 } from ".";
+import { packetToBuffer } from "..";
 
 
 
@@ -15,23 +16,32 @@ export class Packet {
   header: PacketHeader;
   payload: Uint8Array;
   sent: number;
-  OutputStream: internal.Duplex;
+  // OutputStream: internal.Duplex;
   size: number;
   constructor(options: IPacketOptions) {
     this.header = options.header;
     this.payload = options.payload;
     this.sent = 0;
-    this.OutputStream = new Stream.Duplex()
+    // this.OutputStream = new Stream.Duplex()
     this.size = 1280;
   }
 
   encodePacket(): Buffer {
-    let s = this.OutputStream;
-    this.header.encodeHeaderStream();
-    if (this.payload.length > 0) {
-      s.write(this.payload);
+    let buffer = Buffer.alloc(20 + (this.payload ? this.payload.length : 0))
+    buffer[0] = 1
+    buffer[1] = 0
+    buffer.writeUInt16BE(this.header.connectionId, 2);
+    buffer.writeUInt32BE(this.header.timestamp, 4);
+    buffer.writeUInt32BE(this.header.timestampDiff as number, 8);
+    buffer.writeUInt32BE(this.header.wndSize as number, 12);
+    buffer.writeUInt16BE(this.header.seqNr, 16);
+    buffer.writeUInt16BE(this.header.seqNr, 18);
+    if (this.payload) {
+      return Buffer.from(this.payload)
+    } else {
+      return Buffer.alloc(20)
     }
-    return Buffer.from(s.read())
+  
   }
 }
 
