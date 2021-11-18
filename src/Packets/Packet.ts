@@ -28,8 +28,8 @@ export class Packet {
     buffer[1] = 0
     buffer.writeUInt16BE(this.header.connectionId, 2);
     buffer.writeUInt32BE(this.header.timestamp, 4);
-    buffer.writeUInt32BE(this.header.timestampDiff as number, 8);
-    buffer.writeUInt32BE(this.header.wndSize as number, 12);
+    buffer.writeUInt32BE(this.header.timestampDiff, 8);
+    buffer.writeUInt32BE(this.header.wndSize, 12);
     buffer.writeUInt16BE(this.header.seqNr, 16);
     buffer.writeUInt16BE(this.header.seqNr, 18);
     if (this.payload) {

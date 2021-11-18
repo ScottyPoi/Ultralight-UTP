@@ -11,7 +11,7 @@ export class PacketHeader {
     connectionId: Uint16;
     timestamp: MicroSeconds;
     timestampDiff: MicroSeconds;
-    wndSize?: Uint32;
+    wndSize: Uint32;
     seqNr: Uint16;
     ackNr: Uint16;
   
@@ -22,7 +22,7 @@ export class PacketHeader {
         this.connectionId = options.connectionId
         this.timestamp = performance.now()
         this.timestampDiff = options.timestampDiff || 0
-        this.wndSize = options.wndSize || DEFAULT_WINDOW_SIZE
+        this.wndSize = DEFAULT_WINDOW_SIZE
         this.seqNr = options.seqNr
         this.ackNr = options.ackNr;
     } 
