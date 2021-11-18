@@ -62,6 +62,8 @@ export class UtpProtocol {
     }
     
     async handleIncomingSyn(packetAsBuffer: Buffer, dstId: string): Promise<void> {
+      let socket = new _UTPSocket(this.client);
+      this.sockets[dstId] = socket;
       const packet: Packet = bufferToPacket(packetAsBuffer)
     this.sockets[dstId].updateRTT(packet.header.timestampDiff);
     this.sockets[dstId].rcvConnectionId = packet.header.connectionId + 1;
