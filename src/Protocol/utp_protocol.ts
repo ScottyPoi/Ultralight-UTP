@@ -4,21 +4,21 @@ import {PortalNetwork} from '../../../../../dist';
 import { Discv5 } from "@chainsafe/discv5";
 
 export class UtpProtocol {
-  socket: _UTPSocket;
+  sockets: Record<string, _UTPSocket>;
   client: Discv5
-  payloadChunks: Uint8Array[];
+  payloadChunks: Buffer[];
 
   constructor(client: Discv5) {
   this.client = client;
-    this.socket = new _UTPSocket(client);
+    this.sockets = {};
     this.payloadChunks = [];
   }
-
+  
 
   // TODO: Chop up CONTENT into chunks.
   // TODO: Reassemble chunks
 
-  processContent(payload: Buffer): void {
+  async processContent(payload: Buffer): Promise<void> {
     let packetSize = 1200;
     for (let i=0; i<payload.length; i+= packetSize) {
       this.payloadChunks.push(payload.subarray(i, i+packetSize))
@@ -28,58 +28,64 @@ export class UtpProtocol {
   
   
   
-  nextChunk(): Uint8Array {
-    return this.payloadChunks.pop() as Uint8Array;
+  nextChunk(): Buffer {
+    return this.payloadChunks.pop() as Buffer
   }
   
   
   
-  async initiateSyn(dstId: string): Promise<void> {
-    await this.socket.sendSyn(dstId);
+  async initiateSyn(dstId: string): Promise<number> {
+    const socket = new _UTPSocket(this.client)
+    this.sockets[dstId] = socket;
+    
+    await this.sockets[dstId].sendSyn(dstId);
+    return this.sockets[dstId].sndConnectionId
   }
   
-  async handleAck(ack: Packet, dstId: string): Promise<void> {
-    this.socket.state = ConnectionState.Connected;
-    this.socket.ackNr = ack.header.seqNr;
+  async handleSynAck(payload: Buffer, dstId: string, content: Buffer): Promise<void> {
+    const ack = bufferToPacket(payload);
+    await this.processContent(content)
+    this.sockets[dstId].state = ConnectionState.Connected;
+    this.sockets[dstId].ackNr = ack.header.seqNr;
     this.payloadChunks.length > 0
     ? await this.sendData(this.nextChunk(), dstId)
-    : await this.socket.sendFin(dstId);
+    : await this.sockets[dstId].sendFin(dstId);
   }
   
-  async sendData(chunk: Uint8Array, dstId: string): Promise<void> {
-    await this.socket.sendData(
-      this.socket.seqNr,
-      this.socket.ackNr,
-      this.socket.sndConnectionId,
+  async sendData(chunk: Buffer, dstId: string): Promise<void> {
+    await this.sockets[dstId].sendData(
+      this.sockets[dstId].seqNr,
+      this.sockets[dstId].ackNr,
+      this.sockets[dstId].sndConnectionId,
       chunk,
       dstId
       );
     }
     
-    async handleIncomingSyn(packetAsBuffer: Buffer, srcId: string): Promise<void> {
+    async handleIncomingSyn(packetAsBuffer: Buffer, dstId: string): Promise<void> {
       const packet: Packet = bufferToPacket(packetAsBuffer)
-    this.socket.updateRTT(packet.header.timestampDiff);
-    this.socket.rcvConnectionId = packet.header.connectionId + 1;
-    this.socket.sndConnectionId = packet.header.connectionId;
-    this.socket.seqNr = randUint16();
-    this.socket.ackNr = packet.header.seqNr;
-    this.socket.state = ConnectionState.SynRecv;
-    await this.socket.sendAck(
-      this.socket.seqNr++,
-      this.socket.sndConnectionId,
-      this.socket.ackNr,
-      srcId
+    this.sockets[dstId].updateRTT(packet.header.timestampDiff);
+    this.sockets[dstId].rcvConnectionId = packet.header.connectionId + 1;
+    this.sockets[dstId].sndConnectionId = packet.header.connectionId;
+    this.sockets[dstId].seqNr = randUint16();
+    this.sockets[dstId].ackNr = packet.header.seqNr;
+    this.sockets[dstId].state = ConnectionState.SynRecv;
+    await this.sockets[dstId].sendAck(
+      this.sockets[dstId].seqNr++,
+      this.sockets[dstId].sndConnectionId,
+      this.sockets[dstId].ackNr,
+      dstId
     );
   }
 
   async handleIncomingData(packet: Packet, dstId: string): Promise<void> {
-    this.socket.updateRTT(packet.header.timestampDiff);
-    this.socket.ackNr = packet.header.seqNr;
-    this.socket.state = ConnectionState.Connected;
-    await this.socket.sendAck(
-      this.socket.seqNr++,
-      this.socket.ackNr,
-      this.socket.sndConnectionId,
+    this.sockets[dstId].updateRTT(packet.header.timestampDiff);
+    this.sockets[dstId].ackNr = packet.header.seqNr;
+    this.sockets[dstId].state = ConnectionState.Connected;
+    await this.sockets[dstId].sendAck(
+      this.sockets[dstId].seqNr++,
+      this.sockets[dstId].ackNr,
+      this.sockets[dstId].sndConnectionId,
       dstId
     );
   }

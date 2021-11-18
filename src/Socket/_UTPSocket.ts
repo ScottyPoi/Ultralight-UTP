@@ -51,11 +51,20 @@ export class _UTPSocket extends EventEmitter {
   validatePacketSize(packet: Packet): boolean {
     return packet.payload.length <= this.max_window;
   }
-  async sendPacket(packet: Packet, dstId: string, type: PacketType): Promise<void> {
+  async sendPacket(
+    packet: Packet,
+    dstId: string,
+    type: PacketType
+  ): Promise<void> {
     let msg = packet.encodePacket();
-    assert(this.validatePacketSize(packet), `Packet size ${packet.encodePacket().length} too large for max_window: ${this.max_window}`);
+    assert(
+      this.validatePacketSize(packet),
+      `Packet size ${packet.encodePacket().length} too large for max_window: ${
+        this.max_window
+      }`
+    );
     await this.client.sendTalkReq(dstId, msg, "utp");
-    console.log(`${type} packet sent.`)
+    console.log(`${type} packet sent.`);
   }
 
   async sendAck(
@@ -68,6 +77,19 @@ export class _UTPSocket extends EventEmitter {
     console.log(`Sending ack packet ${packet}`);
     await this.sendPacket(packet, dstId, PacketType.ST_STATE);
   }
+
+  // async sendAcceptPacket(packet: Packet, dstId: string) {
+  //   let p = packet.encodePacket();
+  //   const payload: AcceptMessage = {
+  //     connectionId: p,
+  //     contentKeys: [true],
+  //   };
+  //   const encodedPayload = PortalWireMessageType.serialize({
+  //     selector: MessageCodes.ACCEPT,
+  //     value: payload,
+  //   });
+  //   this.client.sendTalkResp(dstId, message.id, Buffer.from(encodedPayload));
+  // }
 
   async sendSyn(dstId: string): Promise<void> {
     assert(this.state === ConnectionState.SynSent);
