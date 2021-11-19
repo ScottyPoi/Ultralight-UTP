@@ -42,30 +42,6 @@ export function getMonoTimeStamp(): Uint32 {
     return a > b ? a : b;
   }
 
-  // export function decodePacketFromBytes(bytes: Uint8Array): Packet {
-  //   if (bytes.length < minimalHeaderSize) {
-  //     console.error("invalid header size");
-  //   }
-  //   const kind = bytes[0] >> 4;
-  //   let header: PacketHeader = new PacketHeader({
-  //     pType: kind,
-  //     extension: bytes[1],
-  //     connectionId: Buffer.from(bytes.subarray(2, 3)).readUInt16BE(),
-  //     seqNr: Buffer.from(bytes.subarray(16, 17)).readUInt16BE(),
-  //     ackNr: Buffer.from(bytes.subarray(18, 19)).readUInt16BE(),
-  //     timestamp: Buffer.from(bytes.subarray(4, 7)).readUInt16BE(),
-  //     timestampDiff: Buffer.from(bytes.subarray(8, 11)).readUInt16BE(),
-  //     wndSize: Buffer.from(bytes.subarray(12, 15)).readUInt16BE(),
-  //   });
-  //   let payload = bytes.length == 20 ? new Uint8Array(0) : bytes.subarray(20);
-  //   let packet: Packet = new Packet({ header: header, payload: payload });
-  //   return packet;
-  // }
-
-
-  export function btp(buffer: Buffer) {
-
-  }
 
   export function bufferToPacket(buffer: Buffer): Packet {
     let ptandver = buffer[0].toString(16);
